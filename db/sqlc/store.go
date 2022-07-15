@@ -56,6 +56,8 @@ type TransferTxResult struct {
 	ToAccountID   int64     `json:"to_account_id"`
 	FromEntry     Entries   `json:"from_entry"`
 	ToEntry       Entries   `json:"to_entry"`
+	FromAccount   Accounts  `json:"from_account"`
+	ToAccount     Accounts  `json:"to_account"`
 }
 
 func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
@@ -90,10 +92,68 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 			return err
 		}
 
-		// TODO: update accounts's balance
+		// get account -> update its balance
+		if arg.FromAccountID < arg.ToAccountID {
+			result.FromAccount, result.ToAccount, err = addMoney(ctx, q, arg.FromAccountID, -arg.Amount, arg.ToAccountID, arg.Amount)
+		} else {
+			result.FromAccount, result.ToAccount, err = addMoney(ctx, q, arg.ToAccountID, arg.Amount, arg.FromAccountID, -arg.Amount)
+		}
+
+		// account1, err := q.GetAccountForUpdate(ctx, int32(arg.FromAccountID))
+		// if err != nil {
+		// 	return err
+		// }
+
+		// result.FromAccount, err = q.UpdateAccount(ctx, UpdateAccountParams{
+		// 	ID:      FromAccountID.ID,
+		// 	Balance: account1.Balance - arg.Amount,
+		// })
+		// if err != nil {
+		// 	return err
+		// }
+
+		// account2, err := q.GetAccountForUpdate(ctx, int32(arg.ToAccountID))
+		// if err != nil {
+		// 	return err
+		// }
+
+		// result.ToAccount, err = q.UpdateAccount(ctx, UpdateAccountParams{
+		// 	ID:      ToAccountID.ID,
+		// 	Balance: account2.Balance + arg.Amount,
+		// })
+		// if err != nil {
+		// 	return err
+		// }
 
 		return nil
 	})
 
 	return result, err
+}
+
+func addMoney(
+	ctx context.Context,
+	q *Queries,
+	accountID int64,
+	amount1 int64,
+	accountID2 int64,
+	amount2 int64,
+) (account1 Accounts, account2 Accounts, err error) {
+	account1, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
+		Amount: amount1,
+		ID:     int32(accountID),
+	})
+	if err != nil {
+		return
+	}
+
+	account2, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
+		Amount: amount2,
+		ID:     int32(accountID2),
+	})
+	if err != nil {
+		return
+	}
+
+	return
 }

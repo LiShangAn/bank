@@ -3,23 +3,30 @@ package api
 import (
 	db "github.com/LiShangAn/bank/db/sqlc"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 )
 
 type Server struct {
-	store  *db.Store
+	store  db.IStore
 	router *gin.Engine
 }
 
-func NewServer(store *db.Store) *Server {
+func NewServer(store db.IStore) *Server {
 	server := &Server{store: store}
 
 	router := gin.Default()
-	server.router = router
+
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterValidation("currency", validCurrency)
+	} //?
 
 	router.POST("/accounts", server.createAccount)
 	router.GET("/accounts/:id", server.getAccount)
 	router.GET("/accounts", server.listAccount)
+	router.POST("/transfers", server.createTransfer)
 
+	server.router = router // change location?
 	return server
 }
 

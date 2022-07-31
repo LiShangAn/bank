@@ -31,22 +31,28 @@ func NewServer(config util.Config, store db.IStore) (*Server, error) {
 		store:      store,
 	}
 
-	router := gin.Default()
-
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("currency", validCurrency)
 	} //?
 
+	server.setRouter()
+
+	return server, nil
+}
+
+func (server *Server) setRouter() {
+	router := gin.Default()
 	router.POST("/users", server.createUser)
-	// router.GET("/user/:username", server.ge)
+	router.POST("/users/login", server.loginUser)
 
 	router.POST("/accounts", server.createAccount)
 	router.GET("/accounts/:id", server.getAccount)
 	router.GET("/accounts", server.listAccount)
+
 	router.POST("/transfer", server.createTransfer)
 
-	server.router = router // change location?
-	return server, nil
+	// router.GET("/user/:username", server.ge)
+	server.router = router
 }
 
 func (server *Server) Start(address string) error {

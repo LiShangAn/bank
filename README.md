@@ -11,3 +11,8 @@ sqlc
 sqlc init
 docker run --rm -v D:\git\bank:/src -w /src kjconroy/sqlc generate
 ```
+
+mock
+```
+mockgen -destination db/mock/store.go github.com/LiShangAn/bank/db/sqlc IStore
+```

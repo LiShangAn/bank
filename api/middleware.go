@@ -13,7 +13,7 @@ import (
 const (
 	authorizationHeaderKey  = "authorization"
 	authorizationTypeBearer = "bearer"
-	authorizationPayloadKey = "authorization_payload"
+	authorizationPayloadKey = "authorization_payload" // the payload value will be stored in the gin context with this specific key
 )
 
 func authMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
@@ -26,7 +26,7 @@ func authMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 			return
 		}
 
-		fields := strings.Fields(authorizationHeader)
+		fields := strings.Fields(authorizationHeader) // split the authorizationHeader by space
 		if len(fields) < 2 {
 			err := errors.New("invalid authorization header")
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
@@ -47,7 +47,7 @@ func authMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 			return
 		}
 
-		ctx.Set(authorizationPayloadKey, payload)
+		ctx.Set(authorizationPayloadKey, payload) //store payload to the context
 		ctx.Next()
 	}
 }
